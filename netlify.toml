@@ -1,0 +1,8 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/r/*"
+  to = "/.netlify/functions/ver?id=:splat"
+  status = 200

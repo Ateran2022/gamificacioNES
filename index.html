@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GamificacioNES · Colegio Nueva Inglaterra</title>
+<style>
+  :root{
+    --bg:#f8f7fc;
+    --card:#ffffff;
+    --ink:#181a20;
+    --ink-muted:#6b7280;
+    --line:#eceaf0;
+    --line2:#e9e7f3;
+    --grad-a:#6d5ae6;
+    --grad-b:#f0577a;
+    --radius:18px;
+    --shadow:0 12px 30px rgba(35,20,70,0.09);
+    --shadow-sm:0 4px 14px rgba(35,20,70,0.06);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms!important;transition-duration:.001ms!important;} }
+
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    min-height:100vh; position:relative; overflow-x:hidden;
+  }
+
+  /* Fondo tipo aurora, igual al de referencia */
+  body::before, body::after{
+    content:""; position:fixed; z-index:-1; border-radius:50%;
+    filter:blur(70px); opacity:.55; pointer-events:none;
+  }
+  body::before{
+    width:520px; height:520px; top:-140px; left:-120px;
+    background:radial-gradient(circle, #c9c3ff 0%, transparent 70%);
+  }
+  body::after{
+    width:560px; height:560px; bottom:-160px; right:-140px;
+    background:radial-gradient(circle, #ffc9d9 0%, transparent 70%);
+  }
+
+  h1,h2,h3{ margin:0; font-weight:800; letter-spacing:-0.01em; }
+  a{ color:inherit; }
+  :focus-visible{ outline:3px solid var(--grad-a); outline-offset:3px; }
+
+  .gradiente-texto{
+    background:linear-gradient(90deg, var(--grad-a), var(--grad-b));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    background:rgba(248,247,252,0.85); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line2);
+  }
+  .topbar-inner{
+    max-width:1100px; margin:0 auto; padding:14px 24px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .topbar-inner img{ width:38px; height:38px; object-fit:contain; }
+  .brand-textos{ line-height:1.2; }
+  .brand-titulo{ font-weight:800; font-size:1.02rem; }
+  .brand-sub{ font-size:.74rem; color:var(--ink-muted); }
+
+  .vista{ display:none; max-width:1000px; margin:0 auto; padding:56px 24px 70px; }
+  .vista.activa{ display:block; }
+
+  .badge-pill{
+    display:inline-flex; align-items:center; gap:6px; margin:0 auto;
+    background:#fff; border:1px solid var(--line2); border-radius:999px;
+    padding:7px 16px; font-size:.72rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--grad-a); box-shadow:var(--shadow-sm);
+  }
+  .hero{ text-align:center; max-width:640px; margin:0 auto 50px; }
+  .hero .badge-wrap{ display:flex; justify-content:center; margin-bottom:22px; }
+  .hero h1{ font-size:clamp(1.9rem,5vw,2.9rem); line-height:1.25; }
+  .hero h1 .linea2{ display:block; }
+  .hero .lead{ color:var(--ink-muted); line-height:1.6; margin-top:16px; font-size:1.02rem; }
+
+  .cta-central{ display:flex; justify-content:center; margin-top:30px; }
+  .cta-central a{
+    background:linear-gradient(90deg, var(--grad-a), var(--grad-b));
+    color:#fff; text-decoration:none; font-weight:700; padding:14px 26px; border-radius:999px;
+    box-shadow:0 10px 24px rgba(109,90,230,.28); font-size:.95rem;
+  }
+
+  .grid-areas{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:14px; }
+  @media (max-width:820px){ .grid-areas{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .grid-areas{ grid-template-columns:1fr; } }
+
+  .tarjeta-area{
+    background:var(--card); border:1px solid var(--line2); border-radius:var(--radius);
+    padding:22px; text-align:left; cursor:pointer; font-family:inherit;
+    display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow-sm);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .tarjeta-area:hover{ transform:translateY(-4px); box-shadow:var(--shadow); }
+  .tarjeta-area .icono{
+    width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem;
+  }
+  .tarjeta-area h3{ font-size:1.08rem; }
+  .tarjeta-area .desc{ font-size:.84rem; color:var(--ink-muted); line-height:1.5; margin:0; }
+  .tarjeta-area .flecha-fila{ margin-top:auto; display:flex; justify-content:space-between; align-items:center; }
+  .tarjeta-area .flecha-fila .clave-txt{ font-size:.72rem; color:var(--ink-muted); }
+  .tarjeta-area .flecha{
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:var(--bg); font-size:1rem;
+  }
+
+  /* Vista de área */
+  .area-header{ display:flex; align-items:center; gap:16px; margin-bottom:8px; flex-wrap:wrap; }
+  .volver{
+    display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid var(--line2);
+    color:var(--ink); padding:8px 14px; border-radius:999px; cursor:pointer; font-size:.83rem; font-family:inherit;
+    box-shadow:var(--shadow-sm);
+  }
+  .volver:hover{ background:var(--bg); }
+  .area-badge{
+    width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.6rem;
+  }
+  .area-titulo h2{ font-size:1.7rem; }
+  .area-titulo p{ margin:2px 0 0; color:var(--ink-muted); font-size:.86rem; }
+
+  .tabs{ display:flex; gap:6px; margin:30px 0 22px; background:#fff; border:1px solid var(--line2); border-radius:999px; padding:5px; width:fit-content; box-shadow:var(--shadow-sm); }
+  .tab{ background:transparent; border:none; color:var(--ink-muted); padding:9px 18px; font-family:inherit; font-size:.86rem; cursor:pointer; border-radius:999px; font-weight:600; }
+  .tab.activo{ color:#fff; background:linear-gradient(90deg, var(--grad-a), var(--grad-b)); }
+
+  .panel{ display:none; }
+  .panel.activo{ display:block; }
+
+  .lista-recursos{ display:flex; flex-direction:column; gap:12px; }
+  .recurso{
+    background:var(--card); border:1px solid var(--line2); border-radius:var(--radius);
+    padding:18px 20px; display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;
+    box-shadow:var(--shadow-sm);
+  }
+  .recurso h4{ margin:0 0 4px; font-weight:700; font-size:1rem; }
+  .recurso p{ margin:0; color:var(--ink-muted); font-size:.84rem; }
+  .recurso .acciones{ display:flex; gap:8px; flex-wrap:wrap; }
+  .recurso a.abrir{
+    background:linear-gradient(90deg, var(--grad-a), var(--grad-b)); color:#fff; font-weight:700; text-decoration:none;
+    padding:9px 16px; border-radius:999px; font-size:.82rem; white-space:nowrap;
+  }
+  .recurso button.borrar{ background:#fff; border:1px solid #f0577a55; color:var(--grad-b); padding:9px 12px; border-radius:999px; font-size:.78rem; cursor:pointer; }
+
+  .vacio{ text-align:center; padding:44px 24px; border:1.5px dashed var(--line2); border-radius:var(--radius); color:var(--ink-muted); background:#fff; }
+  .vacio p{ margin:6px 0; line-height:1.6; }
+
+  .form-publicar{ background:var(--card); border:1px solid var(--line2); border-radius:var(--radius); padding:24px; display:flex; flex-direction:column; gap:14px; box-shadow:var(--shadow-sm); }
+  .campo{ display:flex; flex-direction:column; gap:6px; }
+  .campo label{ font-size:.8rem; color:var(--ink-muted); font-weight:600; }
+  .campo input[type=text], .campo select, .campo textarea{
+    background:var(--bg); border:1px solid var(--line2); border-radius:10px; padding:10px 12px; color:var(--ink); font-size:.94rem; font-family:inherit;
+  }
+  .campo input[type=file]{ color:var(--ink-muted); font-size:.85rem; }
+  .fila-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:520px){ .fila-2{ grid-template-columns:1fr; } }
+  .btn-publicar{
+    background:linear-gradient(90deg, var(--grad-a), var(--grad-b)); color:#fff; border:none; padding:12px;
+    border-radius:999px; font-weight:700; font-size:.95rem; cursor:pointer;
+  }
+  .estado-publicar{ font-size:.85rem; min-height:1.2em; }
+  .estado-publicar.ok{ color:#1ca87a; }
+  .estado-publicar.error{ color:var(--grad-b); }
+
+  .resultado-link{ background:var(--bg); border-left:3px solid var(--grad-a); border-radius:10px; padding:14px 16px; display:none; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .resultado-link.mostrar{ display:flex; }
+  .resultado-link .url{ font-family:ui-monospace,"Courier New",monospace; font-size:.83rem; word-break:break-all; }
+  .resultado-link button{ background:var(--ink); color:#fff; border:none; padding:8px 14px; border-radius:999px; font-weight:700; font-size:.78rem; cursor:pointer; white-space:nowrap; }
+
+  .modal-overlay{ display:none; position:fixed; inset:0; z-index:100; background:rgba(24,20,40,.45); align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.abierto{ display:flex; }
+  .modal{ background:#fff; border:1px solid var(--line2); border-radius:20px; padding:34px 30px; max-width:360px; width:100%; text-align:center; position:relative; box-shadow:var(--shadow); }
+  .modal-close{ position:absolute; top:14px; right:14px; background:transparent; border:none; color:var(--ink-muted); cursor:pointer; font-size:1.1rem; }
+  .modal-icon{
+    width:52px; height:52px; margin:0 auto 14px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:1.5rem;
+    background:linear-gradient(135deg, #6d5ae622, #f0577a22);
+  }
+  .modal h2{ font-size:1.3rem; margin-bottom:6px; }
+  .modal-sub{ color:var(--ink-muted); font-size:.87rem; margin:0 0 20px; }
+  #modal-input{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--line2); background:var(--bg); color:var(--ink); font-size:1rem; text-align:center; letter-spacing:.1em; }
+  #modal-input:focus{ outline:2px solid var(--grad-a); }
+  .modal-error{ display:none; color:var(--grad-b); font-size:.82rem; margin:10px 0 0; }
+  .modal-error.mostrar{ display:block; }
+  .btn-entrar{
+    margin-top:18px; width:100%; background:linear-gradient(90deg, var(--grad-a), var(--grad-b)); color:#fff;
+    border:none; padding:12px; border-radius:999px; font-weight:700; font-size:.95rem; cursor:pointer;
+  }
+
+  .pie{
+    text-align:center; padding:26px 24px 30px; border-top:1px solid var(--line2); margin-top:20px;
+  }
+  .pie p{ margin:2px 0; font-size:.82rem; color:var(--ink-muted); }
+  .pie p b{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <img src="assets/nes-logo.png" alt="Escudo Colegio Nueva Inglaterra">
+    <div class="brand-textos">
+      <div class="brand-titulo">GamificacioNES</div>
+      <div class="brand-sub">Colegio Nueva Inglaterra</div>
+    </div>
+  </div>
+</header>
+
+<section id="inicio" class="vista activa">
+  <div class="hero">
+    <div class="badge-wrap"><span class="badge-pill">🎮 Portal de juegos educativos</span></div>
+    <h1>Aprende jugando.<span class="linea2 gradiente-texto">Descubre GamificacioNES.</span></h1>
+    <p class="lead">Juegos y actividades interactivas para estudiantes de Kínder a 4°. Elige tu área, entra con la clave y explora lo que tu equipo ha preparado.</p>
+  </div>
+  <div class="grid-areas" id="grid-areas"></div>
+</section>
+
+<div id="areas-container"></div>
+
+<div class="modal-overlay" id="modal-pin">
+  <div class="modal">
+    <button class="modal-close" id="modal-cerrar">✕</button>
+    <div class="modal-icon">🔒</div>
+    <h2>Área de <span id="modal-area-nombre"></span></h2>
+    <p class="modal-sub">Escribe la clave de tu área para entrar.</p>
+    <form id="modal-form">
+      <input type="password" id="modal-input" inputmode="numeric" placeholder="Clave del área" autocomplete="off">
+      <p class="modal-error" id="modal-error">Clave incorrecta. Intenta de nuevo.</p>
+      <button type="submit" class="btn-entrar">Entrar al área</button>
+    </form>
+  </div>
+</div>
+
+<footer class="pie">
+  <p><b>Colegio Nueva Inglaterra</b> · Portal de Juegos con IA para estudiantes de Kínder a 4°</p>
+  <p>Desarrollado por Ing. Andrés Terán</p>
+</footer>
+
+<script>
+(function(){
+
+  var AREAS = [
+    { key:"matematicas", nombre:"Matemáticas",       icon:"🔢", color:"#6d5ae6", tint:"#6d5ae61a", pin:"1234", desc:"Sumas, restas y números." },
+    { key:"espanol",      nombre:"Español",           icon:"📖", color:"#f0577a", tint:"#f0577a1a", pin:"1234", desc:"Lectura, letras y palabras." },
+    { key:"ciencias",     nombre:"Ciencias Naturales",icon:"🔬", color:"#1ca87a", tint:"#1ca87a1a", pin:"1234", desc:"Animales, cuerpo y naturaleza." },
+    { key:"sociales",     nombre:"Ciencias Sociales", icon:"🌎", color:"#f5a623", tint:"#f5a6231a", pin:"1234", desc:"Mi mundo, mi ciudad, mi historia." },
+    { key:"ingles",       nombre:"Inglés",             icon:"🗣️", color:"#8b5cf6", tint:"#8b5cf61a", pin:"1234", desc:"Vocabulario y práctica del idioma." },
+    { key:"otras",        nombre:"Otras Áreas",        icon:"🎨", color:"#f76e9c", tint:"#f76e9c1a", pin:"1234", desc:"Arte, música, ed. física y más." }
+  ];
+
+  var pinObjetivo = null;
+
+  function pintarInicio(){
+    var grid = document.getElementById("grid-areas");
+    grid.innerHTML = AREAS.map(function(a){
+      return '<button class="tarjeta-area" data-area="'+a.key+'">' +
+          '<div class="icono" style="background:'+a.tint+';">'+a.icon+'</div>' +
+          '<h3>'+a.nombre+'</h3>' +
+          '<p class="desc">'+a.desc+'</p>' +
+          '<div class="flecha-fila"><span class="clave-txt">Requiere clave</span><span class="flecha">→</span></div>' +
+        '</button>';
+    }).join("");
+    grid.querySelectorAll(".tarjeta-area").forEach(function(btn){
+      btn.addEventListener("click", function(){ abrirModal(btn.getAttribute("data-area")); });
+    });
+  }
+
+  function pintarAreas(){
+    var cont = document.getElementById("areas-container");
+    cont.innerHTML = AREAS.map(function(a){
+      return '<section class="vista" id="area-'+a.key+'">' +
+        '<div class="area-header"><button class="volver" data-volver="'+a.key+'">← Volver al portal</button></div>' +
+        '<div class="area-header" style="margin-top:18px;">' +
+          '<div class="area-badge" style="background:'+a.tint+';">'+a.icon+'</div>' +
+          '<div class="area-titulo"><h2>'+a.nombre+'</h2><p>Recursos del área de '+a.nombre.toLowerCase()+'</p></div>' +
+        '</div>' +
+
+        '<div class="tabs">' +
+          '<button class="tab activo" data-tab="ver" data-tabarea="'+a.key+'">Recursos publicados</button>' +
+          '<button class="tab" data-tab="subir" data-tabarea="'+a.key+'">Publicar nuevo recurso</button>' +
+        '</div>' +
+
+        '<div class="panel activo" id="panel-ver-'+a.key+'">' +
+          '<div class="lista-recursos" id="lista-'+a.key+'"><div class="vacio"><p>Cargando recursos…</p></div></div>' +
+        '</div>' +
+
+        '<div class="panel" id="panel-subir-'+a.key+'">' +
+          '<form class="form-publicar" data-area="'+a.key+'">' +
+            '<div class="campo"><label>Título del recurso</label><input type="text" name="titulo" placeholder="Ej: Sumas y restas del 1 al 20" required></div>' +
+            '<div class="fila-2">' +
+              '<div class="campo"><label>Grado</label><select name="grado"><option value="Todos">Todos los grados</option><option>Kínder</option><option>1°</option><option>2°</option><option>3°</option><option>4°</option></select></div>' +
+              '<div class="campo"><label>Tu nombre (opcional)</label><input type="text" name="autor" placeholder="Profe..."></div>' +
+            '</div>' +
+            '<div class="campo"><label>Descripción breve</label><textarea name="descripcion" rows="2" placeholder="¿De qué se trata?"></textarea></div>' +
+            '<div class="campo"><label>Archivo del juego (.html generado con Gemini)</label><input type="file" name="archivo" accept=".html,.htm" required></div>' +
+            '<button type="submit" class="btn-publicar">Publicar recurso</button>' +
+            '<p class="estado-publicar"></p>' +
+            '<div class="resultado-link"><span class="url"></span><button type="button" class="btn-copiar">Copiar link</button></div>' +
+          '</form>' +
+        '</div>' +
+      '</section>';
+    }).join("");
+
+    cont.querySelectorAll("[data-volver]").forEach(function(btn){ btn.addEventListener("click", irAInicio); });
+
+    cont.querySelectorAll(".tab").forEach(function(tab){
+      tab.addEventListener("click", function(){
+        var areaKey = tab.getAttribute("data-tabarea");
+        var modo = tab.getAttribute("data-tab");
+        var seccion = document.getElementById("area-"+areaKey);
+        seccion.querySelectorAll(".tab").forEach(function(t){ t.classList.remove("activo"); });
+        tab.classList.add("activo");
+        seccion.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("activo"); });
+        document.getElementById("panel-"+modo+"-"+areaKey).classList.add("activo");
+      });
+    });
+
+    cont.querySelectorAll(".form-publicar").forEach(function(form){
+      form.addEventListener("submit", function(e){ publicarRecurso(e, form); });
+    });
+  }
+
+  function cargarLista(areaKey){
+    var cont = document.getElementById("lista-"+areaKey);
+    fetch("/.netlify/functions/listar?area="+areaKey)
+      .then(function(r){ return r.json(); })
+      .then(function(recursos){
+        if (!recursos.length){
+          cont.innerHTML = '<div class="vacio"><p>Todavía no hay recursos publicados en esta área.</p><p style="font-size:.85rem;">Sé el primero — usa la pestaña "Publicar nuevo recurso".</p></div>';
+          return;
+        }
+        cont.innerHTML = recursos.map(function(r){
+          return '<div class="recurso">' +
+            '<div><h4>'+escapeHtml(r.titulo)+'</h4><p>'+(r.grado ? r.grado+' · ' : '')+escapeHtml(r.descripcion||'')+(r.autor ? ' · '+escapeHtml(r.autor) : '')+'</p></div>' +
+            '<div class="acciones">' +
+              '<a class="abrir" href="/r/'+r.id+'" target="_blank" rel="noopener">Abrir recurso</a>' +
+              '<button class="borrar" data-id="'+r.id+'" data-area="'+areaKey+'">Eliminar</button>' +
+            '</div>' +
+          '</div>';
+        }).join("");
+
+        cont.querySelectorAll(".borrar").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            if (!confirm("¿Eliminar este recurso? Esta acción no se puede deshacer.")) return;
+            fetch("/.netlify/functions/eliminar", {
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body: JSON.stringify({ id: btn.getAttribute("data-id"), area: btn.getAttribute("data-area") })
+            }).then(function(){ cargarLista(areaKey); });
+          });
+        });
+      })
+      .catch(function(){
+        cont.innerHTML = '<div class="vacio"><p>No se pudo cargar la lista. Intenta recargar la página.</p></div>';
+      });
+  }
+
+  function publicarRecurso(e, form){
+    e.preventDefault();
+    var areaKey = form.getAttribute("data-area");
+    var estado = form.querySelector(".estado-publicar");
+    var resultado = form.querySelector(".resultado-link");
+    var archivo = form.querySelector('input[name="archivo"]').files[0];
+
+    if (!archivo){
+      estado.textContent = "Selecciona un archivo .html primero.";
+      estado.className = "estado-publicar error";
+      return;
+    }
+
+    estado.textContent = "Publicando…";
+    estado.className = "estado-publicar";
+    resultado.classList.remove("mostrar");
+
+    var lector = new FileReader();
+    lector.onload = function(){
+      var htmlContenido = lector.result;
+      fetch("/.netlify/functions/publicar", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          area: areaKey,
+          titulo: form.titulo.value,
+          grado: form.grado.value,
+          descripcion: form.descripcion.value,
+          autor: form.autor.value,
+          html: htmlContenido
+        })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (data.error){
+          estado.textContent = data.error;
+          estado.className = "estado-publicar error";
+          return;
+        }
+        estado.textContent = "¡Publicado!";
+        estado.className = "estado-publicar ok";
+        var urlCompleta = window.location.origin + data.url;
+        resultado.querySelector(".url").textContent = urlCompleta;
+        resultado.classList.add("mostrar");
+        resultado.querySelector(".btn-copiar").onclick = function(){
+          navigator.clipboard.writeText(urlCompleta);
+          this.textContent = "¡Copiado!";
+          var self = this;
+          setTimeout(function(){ self.textContent = "Copiar link"; }, 1600);
+        };
+        form.reset();
+        cargarLista(areaKey);
+      })
+      .catch(function(){
+        estado.textContent = "Ocurrió un error al publicar. Intenta de nuevo.";
+        estado.className = "estado-publicar error";
+      });
+    };
+    lector.readAsText(archivo);
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+
+  function abrirModal(key){
+    pinObjetivo = key;
+    var area = AREAS.filter(function(a){ return a.key === key; })[0];
+    document.getElementById("modal-area-nombre").textContent = area.nombre;
+    document.getElementById("modal-error").classList.remove("mostrar");
+    document.getElementById("modal-input").value = "";
+    var overlay = document.getElementById("modal-pin");
+    overlay.classList.add("abierto");
+    setTimeout(function(){ document.getElementById("modal-input").focus(); }, 50);
+  }
+
+  function cerrarModal(){
+    document.getElementById("modal-pin").classList.remove("abierto");
+    pinObjetivo = null;
+  }
+
+  function irAInicio(){
+    document.querySelectorAll(".vista").forEach(function(v){ v.classList.remove("activa"); });
+    document.getElementById("inicio").classList.add("activa");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function irAArea(key){
+    document.querySelectorAll(".vista").forEach(function(v){ v.classList.remove("activa"); });
+    document.getElementById("area-"+key).classList.add("activa");
+    window.scrollTo({top:0, behavior:"smooth"});
+    cargarLista(key);
+  }
+
+  document.getElementById("modal-cerrar").addEventListener("click", cerrarModal);
+  document.getElementById("modal-pin").addEventListener("click", function(e){ if (e.target.id === "modal-pin") cerrarModal(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") cerrarModal(); });
+
+  document.getElementById("modal-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var area = AREAS.filter(function(a){ return a.key === pinObjetivo; })[0];
+    var valor = document.getElementById("modal-input").value.trim();
+    if (valor === area.pin){
+      cerrarModal();
+      irAArea(area.key);
+    } else {
+      document.getElementById("modal-error").classList.add("mostrar");
+      document.getElementById("modal-input").focus();
+    }
+  });
+
+  pintarInicio();
+  pintarAreas();
+
+})();
+</script>
+</body>
+</html>
