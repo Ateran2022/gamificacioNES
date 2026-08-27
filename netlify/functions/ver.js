@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { recursosStore } = require("./_lib");
 
 exports.handler = async function (event) {
   const id = event.queryStringParameters && event.queryStringParameters.id;
@@ -8,7 +8,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const store = getStore("recursos");
+    const store = recursosStore();
     const registro = await store.get(id, { type: "json" });
 
     if (!registro) {

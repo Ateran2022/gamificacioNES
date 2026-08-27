@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { recursosStore } = require("./_lib");
 
 exports.handler = async function (event) {
   const area = event.queryStringParameters && event.queryStringParameters.area;
@@ -8,7 +8,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const store = getStore("recursos");
+    const store = recursosStore();
     const indice = (await store.get("indice:" + area, { type: "json" })) || [];
 
     return {

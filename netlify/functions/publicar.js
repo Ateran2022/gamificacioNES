@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { recursosStore } = require("./_lib");
 
 function idAleatorio() {
   return Math.random().toString(36).slice(2, 9);
@@ -20,7 +20,7 @@ exports.handler = async function (event) {
       };
     }
 
-    const store = getStore("recursos");
+    const store = recursosStore();
     const id = idAleatorio();
 
     const registro = {

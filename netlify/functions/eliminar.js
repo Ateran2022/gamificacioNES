@@ -1,4 +1,4 @@
-const { getStore } = require("@netlify/blobs");
+const { recursosStore } = require("./_lib");
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -11,7 +11,7 @@ exports.handler = async function (event) {
       return { statusCode: 400, body: JSON.stringify({ error: "Faltan datos" }) };
     }
 
-    const store = getStore("recursos");
+    const store = recursosStore();
     await store.delete(id);
 
     let indice = (await store.get("indice:" + area, { type: "json" })) || [];
