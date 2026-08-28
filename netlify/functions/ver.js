@@ -1,7 +1,14 @@
 const { recursosStore } = require("./_lib");
 
 exports.handler = async function (event) {
-  const id = event.queryStringParameters && event.queryStringParameters.id;
+  var id = event.queryStringParameters && event.queryStringParameters.id;
+
+  if (!id) {
+    // Respaldo: tomar el id directamente del final de la URL (ej: /.netlify/functions/ver/59ioj1b)
+    var partes = event.path.split("/").filter(Boolean);
+    id = partes[partes.length - 1];
+    if (id === "ver") id = null;
+  }
 
   if (!id) {
     return { statusCode: 400, body: "Falta el identificador del recurso." };
