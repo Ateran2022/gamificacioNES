@@ -11,12 +11,12 @@ exports.handler = async function (event) {
 
   try {
     const datos = JSON.parse(event.body || "{}");
-    const { area, titulo, grado, descripcion, autor, html } = datos;
+    const { titulo, usuario, html } = datos;
 
-    if (!area || !titulo || !html) {
+    if (!titulo || !html) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: "Faltan datos obligatorios (área, título o archivo)" })
+        body: JSON.stringify({ error: "Faltan datos obligatorios (título o archivo)" })
       };
     }
 
@@ -25,21 +25,17 @@ exports.handler = async function (event) {
 
     const registro = {
       id,
-      area,
       titulo,
-      grado: grado || "",
-      descripcion: descripcion || "",
-      autor: autor || "",
+      usuario: usuario || "",
       html,
       fecha: new Date().toISOString()
     };
 
     await store.setJSON(id, registro);
 
-    // Actualizar el índice del área para poder listar los recursos luego sin recorrer todo
     let indice = [];
     try {
-      const actual = await store.get("indice:" + area, { type: "json" });
+      const actual = await store.get("indice", { type: "json" });
       indice = actual || [];
     } catch (e) {
       indice = [];
@@ -48,13 +44,11 @@ exports.handler = async function (event) {
     indice.unshift({
       id,
       titulo,
-      grado: grado || "",
-      descripcion: descripcion || "",
-      autor: autor || "",
+      usuario: usuario || "",
       fecha: registro.fecha
     });
 
-    await store.setJSON("indice:" + area, indice);
+    await store.setJSON("indice", indice);
 
     return {
       statusCode: 200,
